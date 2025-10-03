@@ -588,25 +588,25 @@ def analyze_resume(resume_text):
 def parse_analysis_results(analysis_text):
     """
     Parse the analysis results to extract structured data.
-    Enhanced regex for better robustness against multi-line and variable AI output.
+    Uses 0 and 'N/A' as safe defaults if parsing fails, ensuring no synthetic score is shown.
     """
     results = {
-        'overall_score': 75,
-        'ats_level': 'Medium',
-        'ats_explanation': '',
+        'overall_score': 0, # Initial score is 0, must be overwritten by AI output
+        'ats_level': 'N/A', 
+        'ats_explanation': 'Analysis not complete or ATS section missing.',
         'section_scores': {
-            'Format & Structure': 75,
-            'Content Quality': 75,
-            'Keyword Optimization': 75,
-            'Experience Details': 75,
-            'Skills & Education': 75
+            'Format & Structure': 0,
+            'Content Quality': 0,
+            'Keyword Optimization': 0,
+            'Experience Details': 0,
+            'Skills & Education': 0
         },
         'strengths': [],
         'improvements': [],
         'keywords_present': [],
         'missing_keywords': [],
         'recommendations': [],
-        'industry_alignment': ''
+        'industry_alignment': 'N/A'
     }
     
     if not analysis_text:
@@ -614,7 +614,7 @@ def parse_analysis_results(analysis_text):
     
     # Helper to find text blocks between two headers
     def get_text_block(start_header, end_header, text):
-        # Use re.DOTALL to match across newlines
+        # Use re.DOTALL to match across newlines, capture up to the next header or end of string
         pattern = rf"\*\*{re.escape(start_header)}:\*\*\s*(.*?)(?=\n\*\*{re.escape(end_header)}:\*\*|\Z)"
         match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
         return match.group(1).strip() if match else None
@@ -656,6 +656,7 @@ def parse_analysis_results(analysis_text):
     strengths_block = get_text_block("Strengths", "Areas for Improvement", analysis_text)
     if strengths_block:
         # Split by dash, bullet, or number, and strip whitespace/empty lines
+        # Uses a more robust split pattern
         results['strengths'] = [s.strip().lstrip('-•*').strip() 
                                 for s in re.split(r'[\s]*[-•*1-9]\s*', strengths_block) if s.strip()]
 
@@ -744,7 +745,7 @@ def create_pdf_report(analysis_results, filename):
         if analysis_results:
             content.append(Paragraph(f"<b>Analysis Results</b>", heading_style))
             # Basic cleanup for PDF presentation
-            clean_text = analysis_results.replace('<', '&lt;').replace('>', '&gt;').replace('*', '') 
+            clean_text = analysis_results.replace('<', '&lt;').replace('>', '&gt;').replace('**', '').replace('-', '&bull;').replace('*', '&bull;') 
             paragraphs = clean_text.split("\n")
             for para in paragraphs:
                 if para.strip():
@@ -764,6 +765,7 @@ def create_pdf_report(analysis_results, filename):
 
 def display_score_circle(score):
     """Display animated score circle."""
+    # Only display colors based on actual score (0-100)
     color = "linear-gradient(135deg, #28a745 0%, #20c997 100%)" if score >= 80 else \
             "linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)" if score >= 60 else \
             "linear-gradient(135deg, #dc3545 0%, #c82333 100%)"
@@ -859,6 +861,7 @@ def main():
                     st.error("❌ Could not extract text from resume. Please check the file format.")
         
         # Features section
+        # NOTE: Only show features if analysis is NOT complete to keep focus on the results.
         if not st.session_state.analysis_results:
             st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-header">✨ Why Choose ResumeScore?</div>', unsafe_allow_html=True)
@@ -882,173 +885,207 @@ def main():
     with col2:
         st.markdown('<div class="section-header">📊 Analysis Results</div>', unsafe_allow_html=True)
         
+        # Only display results if analysis is complete AND parsed data is available
         if st.session_state.analysis_results and st.session_state.parsed_results:
             parsed = st.session_state.parsed_results
             
-            # Display score circle
-            display_score_circle(parsed['overall_score'])
-            
-            # ATS Compatibility
-            ats_class = "ats-high" if parsed['ats_level'].lower() == "high" else \
-                         "ats-medium" if parsed['ats_level'].lower() == "medium" else "ats-low"
-            
-            st.markdown(f"""
-            <div style="text-align: center; margin: 20px 0;">
-                <span class="ats-badge {ats_class}">🎯 ATS Compatibility: {parsed['ats_level']}</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if parsed['ats_explanation']:
-                st.markdown(f"""
-                <div class="info-card">
-                    <p style="color: #000000; text-align: center;"><strong>{parsed['ats_explanation']}</strong></p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Section scores
-            st.markdown('<div class="info-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-header">📈 Detailed Scores</div>', unsafe_allow_html=True)
-            
-            for section_name, score in parsed['section_scores'].items():
-                st.markdown(f"<p style='color: #000000; font-weight: bold; margin-bottom: 5px;'>{section_name}</p>", unsafe_allow_html=True)
-                st.markdown(f"""
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {score}%;">{score}%</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Strengths and Improvements
-            col_left, col_right = st.columns(2)
-            
-            with col_left:
-                st.markdown('<div class="info-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-header">💪 Strengths</div>', unsafe_allow_html=True)
+            # Check if a non-zero score was actually parsed
+            if parsed['overall_score'] > 0:
+                # Display score circle
+                display_score_circle(parsed['overall_score'])
                 
-                if parsed['strengths']:
-                    for strength in parsed['strengths'][:7]:
-                        if strength:
-                            st.markdown(f"""
-                            <div class="strength-card">
-                                ✅ {strength}
-                            </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.markdown("<p style='color: #000000;'>No strengths extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
+                # ATS Compatibility
+                ats_level_display = parsed['ats_level'] if parsed['ats_level'] != 'N/A' else 'Pending'
+                ats_class = "ats-high" if ats_level_display.lower() == "high" else \
+                            "ats-medium" if ats_level_display.lower() == "medium" else \
+                            ("ats-low" if ats_level_display.lower() == "low" else "ats-low") # Default to low if N/A is somehow displayed
+
+                st.markdown(f"""
+                <div style="text-align: center; margin: 20px 0;">
+                    <span class="ats-badge {ats_class}">🎯 ATS Compatibility: {ats_level_display}</span>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if parsed['ats_explanation'] and 'Analysis not complete' not in parsed['ats_explanation']:
+                    st.markdown(f"""
+                    <div class="info-card">
+                        <p style="color: #000000; text-align: center;"><strong>{parsed['ats_explanation']}</strong></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Section scores
+                st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                st.markdown('<div class="section-header">📈 Detailed Scores</div>', unsafe_allow_html=True)
+                
+                for section_name, score in parsed['section_scores'].items():
+                    st.markdown(f"<p style='color: #000000; font-weight: bold; margin-bottom: 5px;'>{section_name}</p>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {score}%;">{score}%</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
-            
-            with col_right:
-                st.markdown('<div class="info-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-header">🎯 Improvements</div>', unsafe_allow_html=True)
                 
-                if parsed['improvements']:
-                    for improvement in parsed['improvements'][:7]:
-                        if improvement:
+                # Strengths and Improvements
+                col_left, col_right = st.columns(2)
+                
+                with col_left:
+                    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">💪 Strengths</div>', unsafe_allow_html=True)
+                    
+                    if parsed['strengths']:
+                        for strength in parsed['strengths'][:7]:
+                            if strength:
+                                st.markdown(f"""
+                                <div class="strength-card">
+                                    ✅ {strength}
+                                </div>
+                                """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("<p style='color: #000000;'>No clear strengths extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                with col_right:
+                    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">🎯 Improvements</div>', unsafe_allow_html=True)
+                    
+                    if parsed['improvements']:
+                        for improvement in parsed['improvements'][:7]:
+                            if improvement:
+                                st.markdown(f"""
+                                <div class="weakness-card">
+                                    ⚠️ {improvement}
+                                </div>
+                                """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("<p style='color: #000000;'>No clear improvements extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Keywords Analysis
+                st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                st.markdown('<div class="section-header">🔑 Keyword Analysis</div>', unsafe_allow_html=True)
+                
+                # Keywords present
+                st.markdown("<p style='color: #000000; font-weight: bold;'>✅ Keywords Found in Your Resume:</p>", unsafe_allow_html=True)
+                if parsed['keywords_present']:
+                    keywords_html = ""
+                    for keyword in parsed['keywords_present'][:10]:
+                        if keyword:
+                            keywords_html += f'<span class="keyword-tag">{keyword}</span>'
+                    
+                    if keywords_html:
+                        st.markdown(keywords_html, unsafe_allow_html=True)
+                else:
+                    st.markdown("<p style='color: #000000;'>No relevant keywords extracted.</p>", unsafe_allow_html=True)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Missing keywords
+                st.markdown("<p style='color: #000000; font-weight: bold;'>❌ Important Keywords to Add:</p>", unsafe_allow_html=True)
+                if parsed['missing_keywords']:
+                    missing_html = ""
+                    for keyword in parsed['missing_keywords'][:10]:
+                        if keyword:
+                            missing_html += f'<span class="missing-keyword-tag">{keyword}</span>'
+                    
+                    if missing_html:
+                        st.markdown(missing_html, unsafe_allow_html=True)
+                else:
+                    st.markdown("<p style='color: #000000;'>No missing keywords identified.</p>", unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Specific Recommendations
+                st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                st.markdown('<div class="section-header">💡 Specific Recommendations</div>', unsafe_allow_html=True)
+                
+                if parsed['recommendations']:
+                    for i, recommendation in enumerate(parsed['recommendations'][:5], 1):
+                        if recommendation:
                             st.markdown(f"""
                             <div class="weakness-card">
-                                ⚠️ {improvement}
+                                <strong style="color: #000000;">{i}.</strong> <span style="color: #000000;">{recommendation}</span>
                             </div>
                             """, unsafe_allow_html=True)
                 else:
-                    st.markdown("<p style='color: #000000;'>No improvements extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
+                    st.markdown("<p style='color: #000000;'>No specific recommendations extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Keywords Analysis
-            st.markdown('<div class="info-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-header">🔑 Keyword Analysis</div>', unsafe_allow_html=True)
-            
-            # Keywords present
-            st.markdown("<p style='color: #000000; font-weight: bold;'>✅ Keywords Found in Your Resume:</p>", unsafe_allow_html=True)
-            if parsed['keywords_present']:
-                keywords_html = ""
-                for keyword in parsed['keywords_present'][:10]:
-                    if keyword:
-                        keywords_html += f'<span class="keyword-tag">{keyword}</span>'
                 
-                if keywords_html:
-                    st.markdown(keywords_html, unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color: #000000;'>No keywords extracted.</p>", unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Missing keywords
-            st.markdown("<p style='color: #000000; font-weight: bold;'>❌ Important Keywords to Add:</p>", unsafe_allow_html=True)
-            if parsed['missing_keywords']:
-                missing_html = ""
-                for keyword in parsed['missing_keywords'][:10]:
-                    if keyword:
-                        missing_html += f'<span class="missing-keyword-tag">{keyword}</span>'
+                # Industry Alignment
+                if parsed['industry_alignment'] and parsed['industry_alignment'] != 'N/A':
+                    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">🏢 Industry Alignment</div>', unsafe_allow_html=True)
+                    st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #000000;'>{parsed['industry_alignment']}</p>", unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
-                if missing_html:
-                    st.markdown(missing_html, unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color: #000000;'>No missing keywords identified.</p>", unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Specific Recommendations
-            st.markdown('<div class="info-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-header">💡 Specific Recommendations</div>', unsafe_allow_html=True)
-            
-            if parsed['recommendations']:
-                for i, recommendation in enumerate(parsed['recommendations'][:5], 1):
-                    if recommendation:
-                        st.markdown(f"""
-                        <div class="weakness-card">
-                            <strong style="color: #000000;">{i}.</strong> <span style="color: #000000;">{recommendation}</span>
+                # --- RAW ANALYSIS OUTPUT FOR DEBUGGING (STRUCTURED) ---
+                with st.expander("🔍 View Raw AI Analysis (for debugging)", expanded=False):
+                    st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                    st.markdown('<h3 style="color: #667eea; margin-bottom: 15px;">Raw AI Model Output</h3>', unsafe_allow_html=True)
+                    st.markdown(
+                        f"""
+                        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0;">
+                            <pre style='color: #000000; white-space: pre-wrap; word-wrap: break-word; font-size: 0.9rem;'>
+{st.session_state.analysis_results}
+                            </pre>
                         </div>
-                        """, unsafe_allow_html=True)
-            else:
-                st.markdown("<p style='color: #000000;'>No specific recommendations extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Industry Alignment
-            if parsed['industry_alignment']:
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    st.markdown('<p style="color: #000000; font-style: italic;">This is the exact, unparsed text returned by the AI. Check this if the structured sections above are missing data, and ensure it matches the `INSTRUCTIONS` format.</p>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                # ----------------------------------------------------
+                
+                # Download PDF Report
                 st.markdown('<div class="info-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-header">🏢 Industry Alignment</div>', unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #000000;'>{parsed['industry_alignment']}</p>", unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # RAW ANALYSIS OUTPUT FOR DEBUGGING
-            with st.expander("🔍 View Raw AI Analysis (for debugging)", expanded=False):
-                st.markdown('<div class="info-card">', unsafe_allow_html=True)
-                st.markdown(f"<pre style='color: #000000; white-space: pre-wrap; word-wrap: break-word;'>{st.session_state.analysis_results}</pre>", unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Download PDF Report
-            st.markdown('<div class="info-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-header">📥 Download Your Report</div>', unsafe_allow_html=True)
-            
-            pdf_bytes = create_pdf_report(
-                st.session_state.analysis_results,
-                st.session_state.resume_filename
-            )
-            
-            if pdf_bytes:
-                download_filename = f"resume_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-                st.download_button(
-                    label="📄 Download Detailed PDF Report",
-                    data=pdf_bytes,
-                    file_name=download_filename,
-                    mime="application/pdf",
-                    help="Download a comprehensive PDF report of your resume analysis",
-                    use_container_width=True
+                st.markdown('<div class="section-header">📥 Download Your Report</div>', unsafe_allow_html=True)
+                
+                pdf_bytes = create_pdf_report(
+                    st.session_state.analysis_results,
+                    st.session_state.resume_filename
                 )
+                
+                if pdf_bytes:
+                    download_filename = f"resume_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                    st.download_button(
+                        label="📄 Download Detailed PDF Report",
+                        data=pdf_bytes,
+                        file_name=download_filename,
+                        mime="application/pdf",
+                        help="Download a comprehensive PDF report of your resume analysis",
+                        use_container_width=True
+                    )
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # New Analysis Button
+                if st.button("🔄 Analyze Another Resume", use_container_width=True):
+                    st.session_state.analysis_results = None
+                    st.session_state.parsed_results = None
+                    st.session_state.resume_filename = None
+                    st.session_state.analyze_clicked = False
+                    st.rerun()
             
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # New Analysis Button
-            if st.button("🔄 Analyze Another Resume", use_container_width=True):
-                st.session_state.analysis_results = None
-                st.session_state.parsed_results = None
-                st.session_state.resume_filename = None
-                st.session_state.analyze_clicked = False
-                st.rerun()
+            else:
+                 # Case where analysis completed but returned 0 or could not parse main score
+                 st.warning("⚠️ Analysis completed, but could not extract a valid Overall Score. Please check the 'Raw AI Analysis' for details.")
+                 with st.expander("🔍 View Raw AI Analysis (for debugging)", expanded=True):
+                     st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                     st.markdown(
+                        f"""
+                        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0;">
+                            <pre style='color: #000000; white-space: pre-wrap; word-wrap: break-word; font-size: 0.9rem;'>
+{st.session_state.analysis_results}
+                            </pre>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                     st.markdown('</div>', unsafe_allow_html=True)
         
         else:
             # Placeholder when no results
@@ -1076,7 +1113,8 @@ def main():
             """, unsafe_allow_html=True)
     
     # Additional Tips Section
-    if st.session_state.analysis_results:
+    # NOTE: Only show tips if results are available
+    if st.session_state.analysis_results and st.session_state.parsed_results and st.session_state.parsed_results['overall_score'] > 0:
         st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header">📚 Pro Tips for Resume Success</div>', unsafe_allow_html=True)
         
@@ -1110,6 +1148,7 @@ def main():
             """, unsafe_allow_html=True)
     
     # Key Metrics Section
+    # NOTE: Only show if analysis is NOT complete
     if not st.session_state.analysis_results:
         st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-header">📊 What Gets Measured</div>', unsafe_allow_html=True)
