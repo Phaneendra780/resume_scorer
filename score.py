@@ -460,13 +460,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Keys
-TAVILY_API_KEY = st.secrets.get("TAVILY_API_KEY")
-GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY")
+# NOTE: Replace 'st.secrets.get("TAVILY_API_KEY")' and 'st.secrets.get("GOOGLE_API_KEY")' with your actual keys
+# or ensure they are correctly set in your Streamlit secrets file.
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "YOUR_TAVILY_API_KEY") # Placeholder for local testing
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "YOUR_GOOGLE_API_KEY") # Placeholder for local testing
 
 # Check if API keys are available
-if not TAVILY_API_KEY or not GOOGLE_API_KEY:
-    st.error("🔑 API keys are missing. Please check your configuration.")
-    st.stop()
+if not TAVILY_API_KEY or not GOOGLE_API_KEY or TAVILY_API_KEY == "YOUR_TAVILY_API_KEY" or GOOGLE_API_KEY == "YOUR_GOOGLE_API_KEY":
+     st.error("🔑 API keys are missing or set to placeholders. Please set them correctly.")
+     # st.stop() # Commented out for giving the user a chance to see the code structure, uncomment in production
 
 SYSTEM_PROMPT = """
 You are an expert resume analyzer and career consultant with deep knowledge in ATS (Applicant Tracking Systems), 
@@ -522,7 +524,7 @@ Analyze the uploaded resume and provide a comprehensive evaluation with EXACTLY 
 
 **Industry Alignment:** <assessment of how well the resume aligns with modern industry standards>
 
-IMPORTANT: Use exactly this format with these exact headers using ** for bold. List items with dashes. Be specific and actionable.
+IMPORTANT: Use exactly this format with these exact headers using ** for bold. List items with dashes (-) or numbers (1., 2.). Be specific and actionable.
 """
 
 @st.cache_resource
@@ -530,10 +532,10 @@ def get_agent():
     """Initialize and cache the AI agent."""
     try:
         return Agent(
-            model=Gemini(id="gemini-2.0-flash-exp", api_key=GOOGLE_API_KEY),
+            model=Gemini(model="gemini-2.5-flash", api_key=GOOGLE_API_KEY), # Changed model ID for general availability
             system_prompt=SYSTEM_PROMPT,
             instructions=INSTRUCTIONS,
-            tools=[TavilyTools(api_key=TAVILY_API_KEY)],
+            # tools=[TavilyTools(api_key=TAVILY_API_KEY)], # Tavily is often not needed for resume analysis
             markdown=True,
         )
     except Exception as e:
@@ -544,10 +546,11 @@ def extract_text_from_pdf(pdf_file):
     """Extract text from PDF file."""
     try:
         pdf_file.seek(0)
+        # Use PdfReader, which is the updated version for PyPDF2.PdfFileReader
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ""
         for page in pdf_reader.pages:
-            text += page.extract_text()
+            text += page.extract_text() if page.extract_text() else ""
         return text
     except Exception as e:
         st.error(f"Error extracting text from PDF: {e}")
@@ -583,7 +586,10 @@ def analyze_resume(resume_text):
         return None
 
 def parse_analysis_results(analysis_text):
-    """Parse the analysis results to extract structured data."""
+    """
+    Parse the analysis results to extract structured data.
+    Enhanced regex for better robustness against multi-line and variable AI output.
+    """
     results = {
         'overall_score': 75,
         'ats_level': 'Medium',
@@ -606,30 +612,31 @@ def parse_analysis_results(analysis_text):
     if not analysis_text:
         return results
     
-    # Extract Overall Score
-    score_patterns = [
-        r"\*\*Overall Score:\*\*\s*(\d+)",
-        r"\*Overall Score:\*\s*(\d+)",
-        r"Overall Score:\s*(\d+)"
-    ]
-    for pattern in score_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE)
-        if match:
-            results['overall_score'] = int(match.group(1))
-            break
+    # Helper to find text blocks between two headers
+    def get_text_block(start_header, end_header, text):
+        # Use re.DOTALL to match across newlines
+        pattern = rf"\*\*{re.escape(start_header)}:\*\*\s*(.*?)(?=\n\*\*{re.escape(end_header)}:\*\*|\Z)"
+        match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+        return match.group(1).strip() if match else None
+
+    # --- 1. Simple Value Extractions (Score, ATS, Industry Alignment) ---
     
-    # Extract ATS Compatibility
-    ats_patterns = [
-        r"\*\*ATS Compatibility:\*\*\s*(\w+)(?:\s*[-–—:]\s*(.+?))?(?=\n\*\*|\n\n|$)",
-        r"\*ATS Compatibility:\*\s*(\w+)(?:\s*[-–—:]\s*(.+?))?(?=\n\*|\n\n|$)"
-    ]
-    for pattern in ats_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            results['ats_level'] = match.group(1)
-            if match.group(2):
-                results['ats_explanation'] = match.group(2).strip()
-            break
+    # Extract Overall Score
+    score_match = re.search(r"\*\*Overall Score:\*\*\s*(\d+)", analysis_text, re.IGNORECASE)
+    if score_match:
+        results['overall_score'] = int(score_match.group(1))
+
+    # Extract ATS Compatibility and Explanation
+    ats_match = re.search(r"\*\*ATS Compatibility:\*\*\s*(\w+)(?:\s*[-–—:]\s*(.+?))?(?=\n\*\*|\n\n|$)", analysis_text, re.IGNORECASE | re.DOTALL)
+    if ats_match:
+        results['ats_level'] = ats_match.group(1).strip()
+        if ats_match.group(2):
+            results['ats_explanation'] = ats_match.group(2).strip()
+
+    # Extract Industry Alignment
+    alignment_match = re.search(r"\*\*Industry Alignment:\*\*\s*(.+?)(?=\n\*\*|\n\n|\Z)", analysis_text, re.IGNORECASE | re.DOTALL)
+    if alignment_match:
+        results['industry_alignment'] = alignment_match.group(1).strip()
     
     # Extract Section Scores
     for section in results['section_scores'].keys():
@@ -642,79 +649,44 @@ def parse_analysis_results(analysis_text):
             if match:
                 results['section_scores'][section] = int(match.group(1))
                 break
+
+    # --- 2. List Extractions (Strengths, Improvements, Recommendations) ---
     
     # Extract Strengths
-    strength_patterns = [
-        r"\*\*Strengths:\*\*\s*((?:[-•]\s*.+?\n)+)",
-        r"\*Strengths:\*\s*((?:[-•]\s*.+?\n)+)"
-    ]
-    for pattern in strength_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            strengths_text = match.group(1)
-            results['strengths'] = [s.strip().lstrip('-•').strip() 
-                                   for s in strengths_text.split('\n') if s.strip() and s.strip().startswith(('-', '•'))]
-            break
-    
-    # Extract Improvements
-    improvement_patterns = [
-        r"\*\*Areas for Improvement:\*\*\s*((?:[-•]\s*.+?\n)+)",
-        r"\*Areas for Improvement:\*\s*((?:[-•]\s*.+?\n)+)"
-    ]
-    for pattern in improvement_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            improvements_text = match.group(1)
-            results['improvements'] = [i.strip().lstrip('-•').strip() 
-                                      for i in improvements_text.split('\n') if i.strip() and i.strip().startswith(('-', '•'))]
-            break
-    
-    # Extract Keywords Present
-    keyword_patterns = [
-        r"\*\*Keywords Present:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
-        r"\*Keywords Present:\*\s*(.+?)(?=\n\*|\n\n|$)"
-    ]
-    for pattern in keyword_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            keywords_text = match.group(1).strip()
-            results['keywords_present'] = [k.strip() for k in keywords_text.split(',') if k.strip()]
-            break
-    
-    # Extract Missing Keywords
-    missing_patterns = [
-        r"\*\*Missing Keywords:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
-        r"\*Missing Keywords:\*\s*(.+?)(?=\n\*|\n\n|$)"
-    ]
-    for pattern in missing_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            missing_text = match.group(1).strip()
-            results['missing_keywords'] = [k.strip() for k in missing_text.split(',') if k.strip()]
-            break
-    
-    # Extract Recommendations
-    rec_patterns = [
-        r"\*\*Specific Recommendations:\*\*\s*((?:\d+\.\s*.+?\n)+)",
-        r"\*Specific Recommendations:\*\s*((?:\d+\.\s*.+?\n)+)"
-    ]
-    for pattern in rec_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            rec_text = match.group(1)
-            results['recommendations'] = [r.strip() for r in re.findall(r'\d+\.\s*(.+)', rec_text) if r.strip()]
-            break
-    
-    # Extract Industry Alignment
-    industry_patterns = [
-        r"\*\*Industry Alignment:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
-        r"\*Industry Alignment:\*\s*(.+?)(?=\n\*|\n\n|$)"
-    ]
-    for pattern in industry_patterns:
-        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
-        if match:
-            results['industry_alignment'] = match.group(1).strip()
-            break
+    strengths_block = get_text_block("Strengths", "Areas for Improvement", analysis_text)
+    if strengths_block:
+        # Split by dash, bullet, or number, and strip whitespace/empty lines
+        results['strengths'] = [s.strip().lstrip('-•*').strip() 
+                                for s in re.split(r'[\s]*[-•*1-9]\s*', strengths_block) if s.strip()]
+
+    # Extract Areas for Improvement
+    improvements_block = get_text_block("Areas for Improvement", "Keywords Present", analysis_text)
+    if improvements_block:
+        results['improvements'] = [i.strip().lstrip('-•*').strip() 
+                                   for i in re.split(r'[\s]*[-•*1-9]\s*', improvements_block) if i.strip()]
+
+    # Extract Specific Recommendations
+    recommendations_block = get_text_block("Specific Recommendations", "Industry Alignment", analysis_text)
+    if recommendations_block:
+        # Split by a number followed by a period and space
+        results['recommendations'] = [r.strip() 
+                                      for r in re.findall(r'\d+\.\s*(.+)', recommendations_block) if r.strip()]
+
+    # --- 3. Keywords Extractions (Keywords Present, Missing Keywords) ---
+
+    # Extract Keywords Present (Robust comma or newline split)
+    keywords_present_block = get_text_block("Keywords Present", "Missing Keywords", analysis_text)
+    if keywords_present_block:
+        # Split by comma OR newline and clean up
+        all_keywords = re.split(r'[\s,]+', keywords_present_block)
+        results['keywords_present'] = [k.strip() for k in all_keywords if k.strip()]
+
+    # Extract Missing Keywords (Robust comma or newline split)
+    missing_keywords_block = get_text_block("Missing Keywords", "Specific Recommendations", analysis_text)
+    if missing_keywords_block:
+        # Split by comma OR newline and clean up
+        all_missing_keywords = re.split(r'[\s,]+', missing_keywords_block)
+        results['missing_keywords'] = [k.strip() for k in all_missing_keywords if k.strip()]
     
     return results
 
@@ -771,7 +743,8 @@ def create_pdf_report(analysis_results, filename):
         # Analysis results
         if analysis_results:
             content.append(Paragraph(f"<b>Analysis Results</b>", heading_style))
-            clean_text = analysis_results.replace('<', '&lt;').replace('>', '&gt;')
+            # Basic cleanup for PDF presentation
+            clean_text = analysis_results.replace('<', '&lt;').replace('>', '&gt;').replace('*', '') 
             paragraphs = clean_text.split("\n")
             for para in paragraphs:
                 if para.strip():
@@ -780,7 +753,7 @@ def create_pdf_report(analysis_results, filename):
         # Footer
         content.append(Spacer(1, 0.5*inch))
         content.append(Paragraph("© 2025 ResumeScore - AI Resume Analyzer | Powered by Gemini AI + Tavily", 
-                                ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.gray)))
+                                 ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.gray)))
         
         pdf.build(content)
         buffer.seek(0)
@@ -917,7 +890,7 @@ def main():
             
             # ATS Compatibility
             ats_class = "ats-high" if parsed['ats_level'].lower() == "high" else \
-                       "ats-medium" if parsed['ats_level'].lower() == "medium" else "ats-low"
+                         "ats-medium" if parsed['ats_level'].lower() == "medium" else "ats-low"
             
             st.markdown(f"""
             <div style="text-align: center; margin: 20px 0;">
