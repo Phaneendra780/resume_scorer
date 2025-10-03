@@ -27,13 +27,17 @@ st.set_page_config(
     page_icon="📄"
 )
 
-# Custom CSS for beautiful animations and graphics
+# Custom CSS for beautiful animations and graphics - FIXED TEXT COLOR TO BLACK
 st.markdown("""
 <style>
     /* Main theme colors */
     .stApp {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #000000;
+    }
+    
+    /* FORCE BLACK TEXT COLOR */
+    .stApp, .stApp p, .stApp div, .stApp span, .stApp li {
+        color: #000000 !important;
     }
     
     /* Animated background */
@@ -72,7 +76,7 @@ st.markdown("""
         border-radius: 20px;
         margin-bottom: 30px;
         text-align: center;
-        color: white;
+        color: white !important;
         box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
         animation: fadeIn 0.8s ease-out;
     }
@@ -83,12 +87,14 @@ st.markdown("""
         font-weight: 800;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         animation: pulse 2s ease-in-out infinite;
+        color: white !important;
     }
     
     .main-header p {
         margin: 15px 0 0 0;
         font-size: 1.3rem;
         opacity: 0.95;
+        color: white !important;
     }
     
     /* Score circle styling */
@@ -127,7 +133,7 @@ st.markdown("""
         animation: pulse 2s ease-in-out infinite;
     }
     
-    /* Card styling */
+    /* Card styling - BLACK TEXT */
     .info-card {
         background: rgba(255, 255, 255, 0.95);
         border: none;
@@ -139,13 +145,17 @@ st.markdown("""
         animation: fadeIn 0.6s ease-out;
     }
     
+    .info-card * {
+        color: #000000 !important;
+    }
+    
     .info-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
     }
     
     .section-header {
-        color: #2c3e50;
+        color: #2c3e50 !important;
         font-size: 1.8rem;
         font-weight: 700;
         margin-bottom: 20px;
@@ -179,11 +189,15 @@ st.markdown("""
         border-radius: 15px;
         padding: 20px;
         text-align: center;
-        color: white;
+        color: white !important;
         margin: 10px 0;
         box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         animation: fadeIn 1s ease-out;
         transition: all 0.3s ease;
+    }
+    
+    .metric-box * {
+        color: white !important;
     }
     
     .metric-box:hover {
@@ -196,6 +210,7 @@ st.markdown("""
         font-weight: 800;
         margin-bottom: 5px;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        color: white !important;
     }
     
     .metric-label {
@@ -203,6 +218,7 @@ st.markdown("""
         opacity: 0.95;
         text-transform: uppercase;
         letter-spacing: 1px;
+        color: white !important;
     }
     
     /* Progress bars */
@@ -224,13 +240,13 @@ st.markdown("""
         align-items: center;
         justify-content: flex-end;
         padding-right: 15px;
-        color: white;
+        color: white !important;
         font-weight: 700;
         transition: width 1.5s ease-out;
         animation: slideIn 1s ease-out;
     }
     
-    /* Strength and weakness cards */
+    /* Strength and weakness cards - BLACK TEXT */
     .strength-card {
         background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
         border-left: 5px solid #28a745;
@@ -239,6 +255,7 @@ st.markdown("""
         margin: 12px 0;
         animation: slideIn 0.6s ease-out;
         transition: all 0.3s ease;
+        color: #000000 !important;
     }
     
     .strength-card:hover {
@@ -254,6 +271,7 @@ st.markdown("""
         margin: 12px 0;
         animation: slideIn 0.6s ease-out;
         transition: all 0.3s ease;
+        color: #000000 !important;
     }
     
     .weakness-card:hover {
@@ -264,7 +282,7 @@ st.markdown("""
     /* Button styling */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        color: white !important;
         border: none;
         border-radius: 30px;
         padding: 18px 40px;
@@ -295,24 +313,24 @@ st.markdown("""
     
     .ats-high {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
+        color: white !important;
     }
     
     .ats-medium {
         background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-        color: white;
+        color: white !important;
     }
     
     .ats-low {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
+        color: white !important;
     }
     
     /* Keywords styling */
     .keyword-tag {
         display: inline-block;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        color: white !important;
         padding: 8px 20px;
         border-radius: 20px;
         margin: 5px;
@@ -330,7 +348,7 @@ st.markdown("""
     .missing-keyword-tag {
         display: inline-block;
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
+        color: white !important;
         padding: 8px 20px;
         border-radius: 20px;
         margin: 5px;
@@ -357,8 +375,12 @@ st.markdown("""
     }
     
     .disclaimer strong {
-        color: #856404;
+        color: #856404 !important;
         font-size: 1.2rem;
+    }
+    
+    .disclaimer * {
+        color: #000000 !important;
     }
     
     /* Icon styling */
@@ -402,6 +424,10 @@ st.markdown("""
         box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
         animation: fadeIn 0.8s ease-out;
+    }
+    
+    .feature-card * {
+        color: #000000 !important;
     }
     
     .feature-card:hover {
@@ -458,33 +484,45 @@ Analyze resumes across multiple dimensions:
 """
 
 INSTRUCTIONS = """
-Analyze the uploaded resume and provide a comprehensive evaluation with the following structure:
+Analyze the uploaded resume and provide a comprehensive evaluation with EXACTLY this structure:
 
-*Overall Score:* <score out of 100>
+**Overall Score:** <score out of 100>
 
-*ATS Compatibility:* <High/Medium/Low with explanation>
+**ATS Compatibility:** <High/Medium/Low with brief explanation>
 
-*Section Scores:*
+**Section Scores:**
 - Format & Structure: <score>/100
 - Content Quality: <score>/100
 - Keyword Optimization: <score>/100
 - Experience Details: <score>/100
 - Skills & Education: <score>/100
 
-*Strengths:* <list 5-7 specific strengths found in the resume>
+**Strengths:**
+- <strength 1>
+- <strength 2>
+- <strength 3>
+- <strength 4>
+- <strength 5>
 
-*Areas for Improvement:* <list 5-7 specific actionable improvements>
+**Areas for Improvement:**
+- <improvement 1>
+- <improvement 2>
+- <improvement 3>
+- <improvement 4>
+- <improvement 5>
 
-*Keywords Present:* <list important keywords found in the resume>
+**Keywords Present:** <keyword1>, <keyword2>, <keyword3>, <keyword4>, <keyword5>
 
-*Missing Keywords:* <list important industry keywords that should be added>
+**Missing Keywords:** <missing keyword1>, <missing keyword2>, <missing keyword3>, <missing keyword4>
 
-*Specific Recommendations:*
-<Provide 3-5 detailed, actionable recommendations for improvement>
+**Specific Recommendations:**
+1. <detailed recommendation 1>
+2. <detailed recommendation 2>
+3. <detailed recommendation 3>
 
-*Industry Alignment:* <Assess how well the resume aligns with modern industry standards>
+**Industry Alignment:** <assessment of how well the resume aligns with modern industry standards>
 
-Be specific, constructive, and actionable in your feedback. Focus on helping the candidate succeed.
+IMPORTANT: Use exactly this format with these exact headers using ** for bold. List items with dashes. Be specific and actionable.
 """
 
 @st.cache_resource
@@ -544,17 +582,141 @@ def analyze_resume(resume_text):
         st.error(f"🚨 Error analyzing resume: {e}")
         return None
 
-def save_uploaded_file(uploaded_file):
-    """Save the uploaded file to disk."""
-    try:
-        file_extension = os.path.splitext(uploaded_file.name)[1]
-        with NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
-            temp_file.write(uploaded_file.getvalue())
-            temp_path = temp_file.name
-        return temp_path
-    except Exception as e:
-        st.error(f"💾 Error saving uploaded file: {e}")
-        return None
+def parse_analysis_results(analysis_text):
+    """Parse the analysis results to extract structured data."""
+    results = {
+        'overall_score': 75,
+        'ats_level': 'Medium',
+        'ats_explanation': '',
+        'section_scores': {
+            'Format & Structure': 75,
+            'Content Quality': 75,
+            'Keyword Optimization': 75,
+            'Experience Details': 75,
+            'Skills & Education': 75
+        },
+        'strengths': [],
+        'improvements': [],
+        'keywords_present': [],
+        'missing_keywords': [],
+        'recommendations': [],
+        'industry_alignment': ''
+    }
+    
+    if not analysis_text:
+        return results
+    
+    # Extract Overall Score
+    score_patterns = [
+        r"\*\*Overall Score:\*\*\s*(\d+)",
+        r"\*Overall Score:\*\s*(\d+)",
+        r"Overall Score:\s*(\d+)"
+    ]
+    for pattern in score_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE)
+        if match:
+            results['overall_score'] = int(match.group(1))
+            break
+    
+    # Extract ATS Compatibility
+    ats_patterns = [
+        r"\*\*ATS Compatibility:\*\*\s*(\w+)(?:\s*[-–—:]\s*(.+?))?(?=\n\*\*|\n\n|$)",
+        r"\*ATS Compatibility:\*\s*(\w+)(?:\s*[-–—:]\s*(.+?))?(?=\n\*|\n\n|$)"
+    ]
+    for pattern in ats_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            results['ats_level'] = match.group(1)
+            if match.group(2):
+                results['ats_explanation'] = match.group(2).strip()
+            break
+    
+    # Extract Section Scores
+    for section in results['section_scores'].keys():
+        patterns = [
+            rf"{re.escape(section)}:\s*(\d+)",
+            rf"-\s*{re.escape(section)}:\s*(\d+)"
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, analysis_text, re.IGNORECASE)
+            if match:
+                results['section_scores'][section] = int(match.group(1))
+                break
+    
+    # Extract Strengths
+    strength_patterns = [
+        r"\*\*Strengths:\*\*\s*((?:[-•]\s*.+?\n)+)",
+        r"\*Strengths:\*\s*((?:[-•]\s*.+?\n)+)"
+    ]
+    for pattern in strength_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            strengths_text = match.group(1)
+            results['strengths'] = [s.strip().lstrip('-•').strip() 
+                                   for s in strengths_text.split('\n') if s.strip() and s.strip().startswith(('-', '•'))]
+            break
+    
+    # Extract Improvements
+    improvement_patterns = [
+        r"\*\*Areas for Improvement:\*\*\s*((?:[-•]\s*.+?\n)+)",
+        r"\*Areas for Improvement:\*\s*((?:[-•]\s*.+?\n)+)"
+    ]
+    for pattern in improvement_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            improvements_text = match.group(1)
+            results['improvements'] = [i.strip().lstrip('-•').strip() 
+                                      for i in improvements_text.split('\n') if i.strip() and i.strip().startswith(('-', '•'))]
+            break
+    
+    # Extract Keywords Present
+    keyword_patterns = [
+        r"\*\*Keywords Present:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
+        r"\*Keywords Present:\*\s*(.+?)(?=\n\*|\n\n|$)"
+    ]
+    for pattern in keyword_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            keywords_text = match.group(1).strip()
+            results['keywords_present'] = [k.strip() for k in keywords_text.split(',') if k.strip()]
+            break
+    
+    # Extract Missing Keywords
+    missing_patterns = [
+        r"\*\*Missing Keywords:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
+        r"\*Missing Keywords:\*\s*(.+?)(?=\n\*|\n\n|$)"
+    ]
+    for pattern in missing_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            missing_text = match.group(1).strip()
+            results['missing_keywords'] = [k.strip() for k in missing_text.split(',') if k.strip()]
+            break
+    
+    # Extract Recommendations
+    rec_patterns = [
+        r"\*\*Specific Recommendations:\*\*\s*((?:\d+\.\s*.+?\n)+)",
+        r"\*Specific Recommendations:\*\s*((?:\d+\.\s*.+?\n)+)"
+    ]
+    for pattern in rec_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            rec_text = match.group(1)
+            results['recommendations'] = [r.strip() for r in re.findall(r'\d+\.\s*(.+)', rec_text) if r.strip()]
+            break
+    
+    # Extract Industry Alignment
+    industry_patterns = [
+        r"\*\*Industry Alignment:\*\*\s*(.+?)(?=\n\*\*|\n\n|$)",
+        r"\*Industry Alignment:\*\s*(.+?)(?=\n\*|\n\n|$)"
+    ]
+    for pattern in industry_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            results['industry_alignment'] = match.group(1).strip()
+            break
+    
+    return results
 
 def create_pdf_report(analysis_results, filename):
     """Create a PDF report of the resume analysis."""
@@ -608,20 +770,12 @@ def create_pdf_report(analysis_results, filename):
         
         # Analysis results
         if analysis_results:
-            section_pattern = r"\*([\w\s&]+):\*(.*?)(?=\*[\w\s&]+:\*|$)"
-            matches = re.findall(section_pattern, analysis_results, re.DOTALL | re.IGNORECASE)
-            
-            if matches:
-                for section_title, section_content in matches:
-                    content.append(Paragraph(f"<b>{section_title.strip()}</b>", heading_style))
-                    
-                    paragraphs = section_content.strip().split("\n")
-                    for para in paragraphs:
-                        if para.strip():
-                            clean_para = para.strip().replace('<', '&lt;').replace('>', '&gt;')
-                            content.append(Paragraph(clean_para, normal_style))
-                    
-                    content.append(Spacer(1, 0.2*inch))
+            content.append(Paragraph(f"<b>Analysis Results</b>", heading_style))
+            clean_text = analysis_results.replace('<', '&lt;').replace('>', '&gt;')
+            paragraphs = clean_text.split("\n")
+            for para in paragraphs:
+                if para.strip():
+                    content.append(Paragraph(para.strip(), normal_style))
         
         # Footer
         content.append(Spacer(1, 0.5*inch))
@@ -655,6 +809,8 @@ def main():
         st.session_state.analysis_results = None
     if 'resume_filename' not in st.session_state:
         st.session_state.resume_filename = None
+    if 'parsed_results' not in st.session_state:
+        st.session_state.parsed_results = None
 
     # Header
     st.markdown("""
@@ -721,6 +877,7 @@ def main():
                     
                     if analysis_result:
                         st.session_state.analysis_results = analysis_result
+                        st.session_state.parsed_results = parse_analysis_results(analysis_result)
                         st.success("✅ Analysis completed successfully!")
                         st.rerun()
                     else:
@@ -752,49 +909,35 @@ def main():
     with col2:
         st.markdown('<div class="section-header">📊 Analysis Results</div>', unsafe_allow_html=True)
         
-        if st.session_state.analysis_results:
-            analysis_text = st.session_state.analysis_results
-            
-            # Extract overall score
-            score_match = re.search(r"\*Overall Score:\*\s*(\d+)", analysis_text, re.IGNORECASE)
-            overall_score = int(score_match.group(1)) if score_match else 75
+        if st.session_state.analysis_results and st.session_state.parsed_results:
+            parsed = st.session_state.parsed_results
             
             # Display score circle
-            display_score_circle(overall_score)
+            display_score_circle(parsed['overall_score'])
             
-            # Extract ATS compatibility
-            ats_match = re.search(r"\*ATS Compatibility:\*\s*(\w+)", analysis_text, re.IGNORECASE)
-            ats_level = ats_match.group(1) if ats_match else "Medium"
-            
-            ats_class = "ats-high" if ats_level.lower() == "high" else \
-                       "ats-medium" if ats_level.lower() == "medium" else "ats-low"
+            # ATS Compatibility
+            ats_class = "ats-high" if parsed['ats_level'].lower() == "high" else \
+                       "ats-medium" if parsed['ats_level'].lower() == "medium" else "ats-low"
             
             st.markdown(f"""
             <div style="text-align: center; margin: 20px 0;">
-                <span class="ats-badge {ats_class}">🎯 ATS Compatibility: {ats_level}</span>
+                <span class="ats-badge {ats_class}">🎯 ATS Compatibility: {parsed['ats_level']}</span>
             </div>
             """, unsafe_allow_html=True)
+            
+            if parsed['ats_explanation']:
+                st.markdown(f"""
+                <div class="info-card">
+                    <p style="color: #000000; text-align: center;"><strong>{parsed['ats_explanation']}</strong></p>
+                </div>
+                """, unsafe_allow_html=True)
             
             # Section scores
             st.markdown('<div class="info-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-header">📈 Detailed Scores</div>', unsafe_allow_html=True)
             
-            section_scores = {
-                "Format & Structure": 0,
-                "Content Quality": 0,
-                "Keyword Optimization": 0,
-                "Experience Details": 0,
-                "Skills & Education": 0
-            }
-            
-            for section_name in section_scores.keys():
-                pattern = rf"{re.escape(section_name)}:\s*(\d+)"
-                match = re.search(pattern, analysis_text, re.IGNORECASE)
-                if match:
-                    section_scores[section_name] = int(match.group(1))
-            
-            for section_name, score in section_scores.items():
-                st.markdown(f"**{section_name}**")
+            for section_name, score in parsed['section_scores'].items():
+                st.markdown(f"<p style='color: #000000; font-weight: bold; margin-bottom: 5px;'>{section_name}</p>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: {score}%;">{score}%</div>
@@ -810,19 +953,16 @@ def main():
                 st.markdown('<div class="info-card">', unsafe_allow_html=True)
                 st.markdown('<div class="section-header">💪 Strengths</div>', unsafe_allow_html=True)
                 
-                strengths_match = re.search(r"\*Strengths:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-                if strengths_match:
-                    strengths_text = strengths_match.group(1).strip()
-                    strengths = [s.strip() for s in strengths_text.split('\n') if s.strip() and not s.strip().startswith('*')]
-                    
-                    for strength in strengths[:7]:
+                if parsed['strengths']:
+                    for strength in parsed['strengths'][:7]:
                         if strength:
-                            clean_strength = strength.lstrip('-•').strip()
                             st.markdown(f"""
                             <div class="strength-card">
-                                ✅ {clean_strength}
+                                ✅ {strength}
                             </div>
                             """, unsafe_allow_html=True)
+                else:
+                    st.markdown("<p style='color: #000000;'>No strengths extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             
@@ -830,19 +970,16 @@ def main():
                 st.markdown('<div class="info-card">', unsafe_allow_html=True)
                 st.markdown('<div class="section-header">🎯 Improvements</div>', unsafe_allow_html=True)
                 
-                improvements_match = re.search(r"\*Areas for Improvement:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-                if improvements_match:
-                    improvements_text = improvements_match.group(1).strip()
-                    improvements = [i.strip() for i in improvements_text.split('\n') if i.strip() and not i.strip().startswith('*')]
-                    
-                    for improvement in improvements[:7]:
+                if parsed['improvements']:
+                    for improvement in parsed['improvements'][:7]:
                         if improvement:
-                            clean_improvement = improvement.lstrip('-•').strip()
                             st.markdown(f"""
                             <div class="weakness-card">
-                                ⚠️ {clean_improvement}
+                                ⚠️ {improvement}
                             </div>
                             """, unsafe_allow_html=True)
+                else:
+                    st.markdown("<p style='color: #000000;'>No improvements extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             
@@ -851,38 +988,32 @@ def main():
             st.markdown('<div class="section-header">🔑 Keyword Analysis</div>', unsafe_allow_html=True)
             
             # Keywords present
-            st.markdown("**✅ Keywords Found in Your Resume:**")
-            keywords_match = re.search(r"\*Keywords Present:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-            if keywords_match:
-                keywords_text = keywords_match.group(1).strip()
-                keywords = [k.strip() for k in keywords_text.replace('\n', ',').split(',') if k.strip() and not k.strip().startswith('*')]
-                
+            st.markdown("<p style='color: #000000; font-weight: bold;'>✅ Keywords Found in Your Resume:</p>", unsafe_allow_html=True)
+            if parsed['keywords_present']:
                 keywords_html = ""
-                for keyword in keywords[:10]:
+                for keyword in parsed['keywords_present'][:10]:
                     if keyword:
-                        clean_keyword = keyword.lstrip('-•').strip()
-                        keywords_html += f'<span class="keyword-tag">{clean_keyword}</span>'
+                        keywords_html += f'<span class="keyword-tag">{keyword}</span>'
                 
                 if keywords_html:
                     st.markdown(keywords_html, unsafe_allow_html=True)
+            else:
+                st.markdown("<p style='color: #000000;'>No keywords extracted.</p>", unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Missing keywords
-            st.markdown("**❌ Important Keywords to Add:**")
-            missing_match = re.search(r"\*Missing Keywords:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-            if missing_match:
-                missing_text = missing_match.group(1).strip()
-                missing_keywords = [m.strip() for m in missing_text.replace('\n', ',').split(',') if m.strip() and not m.strip().startswith('*')]
-                
+            st.markdown("<p style='color: #000000; font-weight: bold;'>❌ Important Keywords to Add:</p>", unsafe_allow_html=True)
+            if parsed['missing_keywords']:
                 missing_html = ""
-                for keyword in missing_keywords[:10]:
+                for keyword in parsed['missing_keywords'][:10]:
                     if keyword:
-                        clean_keyword = keyword.lstrip('-•').strip()
-                        missing_html += f'<span class="missing-keyword-tag">{clean_keyword}</span>'
+                        missing_html += f'<span class="missing-keyword-tag">{keyword}</span>'
                 
                 if missing_html:
                     st.markdown(missing_html, unsafe_allow_html=True)
+            else:
+                st.markdown("<p style='color: #000000;'>No missing keywords identified.</p>", unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -890,29 +1021,30 @@ def main():
             st.markdown('<div class="info-card">', unsafe_allow_html=True)
             st.markdown('<div class="section-header">💡 Specific Recommendations</div>', unsafe_allow_html=True)
             
-            recommendations_match = re.search(r"\*Specific Recommendations:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-            if recommendations_match:
-                recommendations_text = recommendations_match.group(1).strip()
-                recommendations = [r.strip() for r in recommendations_text.split('\n') if r.strip() and not r.strip().startswith('*')]
-                
-                for i, recommendation in enumerate(recommendations[:5], 1):
+            if parsed['recommendations']:
+                for i, recommendation in enumerate(parsed['recommendations'][:5], 1):
                     if recommendation:
-                        clean_rec = recommendation.lstrip('-•').strip()
                         st.markdown(f"""
                         <div class="weakness-card">
-                            <strong>{i}.</strong> {clean_rec}
+                            <strong style="color: #000000;">{i}.</strong> <span style="color: #000000;">{recommendation}</span>
                         </div>
                         """, unsafe_allow_html=True)
+            else:
+                st.markdown("<p style='color: #000000;'>No specific recommendations extracted. Check raw analysis below.</p>", unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Industry Alignment
-            industry_match = re.search(r"\*Industry Alignment:\*(.*?)(?=\*[\w\s&]+:\*|$)", analysis_text, re.DOTALL | re.IGNORECASE)
-            if industry_match:
+            if parsed['industry_alignment']:
                 st.markdown('<div class="info-card">', unsafe_allow_html=True)
                 st.markdown('<div class="section-header">🏢 Industry Alignment</div>', unsafe_allow_html=True)
-                industry_text = industry_match.group(1).strip()
-                st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6;'>{industry_text}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #000000;'>{parsed['industry_alignment']}</p>", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            # RAW ANALYSIS OUTPUT FOR DEBUGGING
+            with st.expander("🔍 View Raw AI Analysis (for debugging)", expanded=False):
+                st.markdown('<div class="info-card">', unsafe_allow_html=True)
+                st.markdown(f"<pre style='color: #000000; white-space: pre-wrap; word-wrap: break-word;'>{st.session_state.analysis_results}</pre>", unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
             
             # Download PDF Report
@@ -940,6 +1072,7 @@ def main():
             # New Analysis Button
             if st.button("🔄 Analyze Another Resume", use_container_width=True):
                 st.session_state.analysis_results = None
+                st.session_state.parsed_results = None
                 st.session_state.resume_filename = None
                 st.session_state.analyze_clicked = False
                 st.rerun()
@@ -951,19 +1084,19 @@ def main():
                 <div style="text-align: center; padding: 40px;">
                     <div class="feature-icon">📊</div>
                     <h3 style="color: #667eea; margin-bottom: 15px;">Ready to Analyze</h3>
-                    <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
+                    <p style="color: #000000; font-size: 1.1rem; line-height: 1.6;">
                         Upload your resume and click 'Analyze My Resume' to receive:
                     </p>
                     <div style="text-align: left; max-width: 400px; margin: 20px auto;">
-                        <p>✅ Overall score out of 100</p>
-                        <p>✅ ATS compatibility rating</p>
-                        <p>✅ Section-by-section breakdown</p>
-                        <p>✅ Identified strengths</p>
-                        <p>✅ Areas for improvement</p>
-                        <p>✅ Keyword analysis</p>
-                        <p>✅ Actionable recommendations</p>
-                        <p>✅ Industry alignment assessment</p>
-                        <p>✅ Downloadable PDF report</p>
+                        <p style="color: #000000;">✅ Overall score out of 100</p>
+                        <p style="color: #000000;">✅ ATS compatibility rating</p>
+                        <p style="color: #000000;">✅ Section-by-section breakdown</p>
+                        <p style="color: #000000;">✅ Identified strengths</p>
+                        <p style="color: #000000;">✅ Areas for improvement</p>
+                        <p style="color: #000000;">✅ Keyword analysis</p>
+                        <p style="color: #000000;">✅ Actionable recommendations</p>
+                        <p style="color: #000000;">✅ Industry alignment assessment</p>
+                        <p style="color: #000000;">✅ Downloadable PDF report</p>
                     </div>
                 </div>
             </div>
@@ -981,7 +1114,7 @@ def main():
             <div class="feature-card">
                 <div class="feature-icon">🎯</div>
                 <h3 style="color: #667eea;">Tailor for Each Job</h3>
-                <p style="color: #666;">Customize your resume for each position by incorporating job-specific keywords and requirements.</p>
+                <p style="color: #000000;">Customize your resume for each position by incorporating job-specific keywords and requirements.</p>
             </div>
             """, unsafe_allow_html=True)
         
@@ -990,7 +1123,7 @@ def main():
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
                 <h3 style="color: #667eea;">Quantify Achievements</h3>
-                <p style="color: #666;">Use numbers, percentages, and metrics to demonstrate your impact and accomplishments.</p>
+                <p style="color: #000000;">Use numbers, percentages, and metrics to demonstrate your impact and accomplishments.</p>
             </div>
             """, unsafe_allow_html=True)
         
@@ -999,7 +1132,7 @@ def main():
             <div class="feature-card">
                 <div class="feature-icon">🔍</div>
                 <h3 style="color: #667eea;">Keep It Updated</h3>
-                <p style="color: #666;">Regular updates ensure your resume reflects your latest skills and achievements.</p>
+                <p style="color: #000000;">Regular updates ensure your resume reflects your latest skills and achievements.</p>
             </div>
             """, unsafe_allow_html=True)
     
